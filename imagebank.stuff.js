@@ -1,7 +1,6 @@
 ﻿"use strict"
 console.log("imagebank.stuff.js!")
 // img要素を使い、画像を表示する。
-// かっちりロード管理するともっと大きくなる。
 
 stuff.imagebank = {};
 stuff.imagebank.images = {};

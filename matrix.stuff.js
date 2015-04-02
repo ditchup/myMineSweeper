@@ -16,7 +16,7 @@ stuff.matrix.setup = function (size) {
 };
 
 // 詰め物をする。
-// データしかコピーしないよ！
+// 単に各要素に対して値を与える。参照をたどったりはしない。
 stuff.matrix.stuffingsetup = function (size1, size2, stuffing) {
 	var i, j;
 	var matrix = [];
@@ -42,3 +42,4 @@ stuff.matrix.stuffingreset = function (matrix, stuffing) {
 
 	return matrix;
 };
+

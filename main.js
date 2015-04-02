@@ -7,9 +7,6 @@ var imagebankElem = sprout("imagebank");
 
 // いつでもアクセスしたい定数
 var P = {
-	WHITECOLOR: "rgba(255, 255, 255, 255)",
-	BLACKCOLOR: "rgba(0, 0, 0, 255)",
-	CLEARCOLOR: "rgba(0, 0, 0, 0)",
 	GAMEWIDTH: 288,
 	GAMEHEIGHT: 288,
 	MATRIXSIZE: 9,
@@ -32,7 +29,7 @@ var imgIndexes = {
 if (stuff.imagebank !== undefined) {
 	stuff.imagebank.load(imgIndexes);
 } else {
-	imagebankElem.onload = function () { // すぐロードされちゃって無視されたりしないかな？
+	imagebankElem.onload = function () {
 		stuff.imagebank.load(imgIndexes);
 		// imgIndexesの中身が得られないので、sproutの返り値が得られたときにはonloadの中身を書けない。
 	};
@@ -48,7 +45,8 @@ window.onload = function () {
 	document.body.style.backgroundColor = "black";
 
 	// 手抜き用関数
-	function getRandomIntager(int_num) { // 0~(int_num-1)のランダムな整数値を返す
+	// 0~(int_num-1)のランダムな整数値を返す
+	function getRandomIntager(int_num) {
 		return Math.floor(Math.random() * int_num);
 	}
 	
@@ -81,21 +79,6 @@ window.onload = function () {
 	 * */
 	var surfaceMap = stuff.matrix.stuffingsetup(P.MATRIXSIZE, P.MATRIXSIZE, 1);
 
-	// エラー処理なし。
-	// エラー処理無しなら、直に書く？
-	surfaceMap.open = function (i, j) {
-		surfaceMap[i][j] = 0;
-	};
-	/*
-	surfaceMap.close = function (i, j) {
-		surfaceMap[i][j] = 1;
-	};
-	surfaceMap.setFlag = function (i, j) {
-		surfaceMap[i][j] = 2;
-	};
-	surfaceMap.removeFlag = surfaceMap.close;	// 未開封の状態にします。
-	*/
-
 	/*
 	 * 床の状態。
 	 * 0～8: 爆弾はない。数値は周囲にある爆弾の数を表す
@@ -125,7 +108,6 @@ window.onload = function () {
 
 	// 爆弾ランダム配置
 	// ign_i, ign_jの周囲1マスには置かない
-	// 一つ一つ調べるのでなく、距離で判定。（無駄あり過ぎだった・・・）
 	// 「周りの爆弾の数」も与える。
 	floorMap.setBomb = function (bomb_num, ign_i, ign_j) {
 		var i, j;
@@ -149,12 +131,13 @@ window.onload = function () {
 
 	};
 	
+	// 全種類の数字が表示されるように爆弾を配置する
 	floorMap.setBombSample = function () {
-		
 		var set = function (i, j) {
 			floorMap[i][j] = 9;
 			floorMap.incrementAround(i, j);
 		};
+
 		set(4, 4);
 		set(5, 4);
 		set(2, 5);
@@ -177,12 +160,11 @@ window.onload = function () {
 	var images = stuff.imagebank.images; // window.onload外でロード済みのimg要素群
 
 	// img要素からcanvasへの描画。
-	// ctx, surfaceMap, floorMap、imagesなどをブロックスコープで参照しようと思うので、オブジェクトから外して書いています。
+	// ctx, surfaceMap, floorMap、imagesなどを定義時のスコープで参照する。
 	
 	// 数字を描画。
 	// nums.png専用。
 	var drawNumber = function (num, x, y) {
-		// 1～8の値を描画。それ以外は無視。
 		if (num <= 0 || num >= 9) {
 			return;
 		}
@@ -229,9 +211,6 @@ window.onload = function () {
 
 	// 連鎖開封
 	// データを変更しつつ、描画も行う。
-	// 初回のbufferへの登録省く
-	// 引数をi_openとし、iを内部変数として使う（jも同様。ただ、別の関数では引数でiを使ってて、まぎらわしい。）
-	// ifとcontinueではなく、先にmaxやminで周囲の範囲（i_min、i_max）を決めておく
 	//TODO 自分で開封したマスも毎回調べるので無駄、別の調べ方を調査する。
 	var open8dir = function (i_open, j_open) {
 		var buffer = [];
@@ -280,6 +259,7 @@ window.onload = function () {
 
 	};
 
+	// すべての爆弾が存在するマスを開封する
 	var openAllBomb = function () {
 		for (i = 0; i < P.MATRIXSIZE; i++) {
 			for (j = 0; j < P.MATRIXSIZE; j++) {
@@ -290,6 +270,7 @@ window.onload = function () {
 		}
 	};
 
+	// すべての爆弾が存在するマスに旗を立てる
 	var setFlagAllBomb = function () {
 		for (i = 0; i < P.MATRIXSIZE; i++) {
 			for (j = 0; j < P.MATRIXSIZE; j++) {
@@ -301,9 +282,12 @@ window.onload = function () {
 		}
 	};
 
+	// HTMLを再読み込みし、ゲームをリセットする
 	var roughreset = function () {
 		location.reload();
-	}
+	};
+
+	// 変数と表示を初期化し、ゲームをリセットする
 	var softreset = function () {
 		openedNum = 0;
 		istouchable = true;
@@ -317,17 +301,16 @@ window.onload = function () {
 				drawSquare(i, j);
 			}
 		}
-		//canvas.addEventListener("mousedown", onclick);
 	};
 
+	// プレイヤーがマウスで押したときに反応するハンドラ。
+	// ほぼゲームの本体。
 	var onclick = function (e) {
 		var i, j;
 		i = Math.floor(e.layerX / 32);
 		j = Math.floor(e.layerY / 32);
 		
 		// タッチ操作を無視する指定があるとき無視する。（クリア時、ゲームオーバー時）
-		// リセットの仮置き場
-		// 爆弾をタッチするとリセット
 		if (istouchable === false) {
 			softreset();
 			return;
@@ -338,9 +321,10 @@ window.onload = function () {
 			return;
 		}
 
-		// 最初に開けるとき爆弾の位置を決める
+		// 最初の開封なら、爆弾の位置を決める
 		if (openedNum === 0) {
 			floorMap.setBomb(P.BOMBNUM, i, j);
+
 			// 数値チップの表示テスト（1~8まで表示）
 			//floorMap.setBombSample();
 		}
@@ -351,10 +335,13 @@ window.onload = function () {
 			// isredfloor引数にtrueを与え、床を赤く塗る。
 			open(i, j, true);
 
+			// 全部走査するので無駄・・・
 			openAllBomb();
+
 			// 以後、開封操作できなくする
 			istouchable = false;
 			//alert("boom!");
+
 			return;
 		}
 
@@ -362,7 +349,6 @@ window.onload = function () {
 		open8dir(i, j);
 
 		// クリア判定
-		//console.log(openedNum);
 		if (openedNum === P.MATRIXSIZE*P.MATRIXSIZE - P.BOMBNUM) {
 			setFlagAllBomb();
 
@@ -379,8 +365,6 @@ window.onload = function () {
 	}
 	canvas.addEventListener("mousedown", onclick);
 
-	// debug
-	//floorMap.setBomb(10, getRandomIntager(8), getRandomIntager(8));
 	var i, j;
 	for (i = 0; i < P.MATRIXSIZE; i++) {
 		for (j = 0; j < P.MATRIXSIZE; j++) {
@@ -390,6 +374,7 @@ window.onload = function () {
 
 };
 
+// TODO
 // 立ち上がりが遅い。表示して、ほぼ1秒経ってからクリックに反応する。
 // クリア表示をもっと伝わりやすく（スプライト的にどーんと！）
 // 自主リセット、フラグ。
