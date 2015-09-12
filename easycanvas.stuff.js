@@ -9,8 +9,8 @@ if (stuff.easycanvas === undefined) {
 
 stuff.easycanvas.setup = function (width, height, visibleframe) {
 	var elem = document.createElement("canvas");
-	elem.height = width;
-	elem.width = height;
+	elem.width = width;
+	elem.height = height;
 	document.body.appendChild(elem);
 	
 	// 画面左端に移動
